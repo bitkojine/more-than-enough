@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.205.0':
+    'Who’s playing now sits at the end of the zoom bar: a person with a green dot and how many players are awake, you included. {phone:Tap|laptop:Click} it to see everyone in the world. The “+10” pill and the name chips under the top bar are gone; names still show over heads and at the screen’s edge.',
   'news.0.204.0':
     'Everyone is 3D Mica now: other players, the company bots and sleepers are drawn just like you, no longer as the old flat figure, each in a coat of their own player colour so you can tell them apart (yours is yours too). Sleepers lie on their side with their eyes shut, and the faces in the badges at the screen’s edge are Mica’s too. When you hold up your invite sign, Mica grips it in their own mittens.',
   'news.0.203.0':

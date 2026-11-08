@@ -1132,7 +1132,6 @@ export default {
   'invites.full': 'Per daug kvietimų nuorodų: pirma kai kurias sustabdyk',
   'unit.m': '{n}\u00a0m',
   'unit.km': '{n}\u00a0km',
-  'together.friends': 'Draugai',
   'together.name.moss': 'Samana',
   'together.name.fern': 'Papartis',
   'together.name.acorn': 'Gilė',
@@ -1187,7 +1186,7 @@ export default {
   'together.toast.full': 'Tas pasaulis pilnas',
   'together.toast.reconnecting': 'Ryšys nutrūko, jungiamasi iš naujo…',
   'together.toast.broken': 'Bendro pasaulio nepavyko įkelti',
-  'together.more': 'Dar žaidėjų: {n}',
+  'players.awake': 'Dabar žaidžia: {n}',
   'players.title': 'Žaidėjai',
   'players.count': {
     one: 'Šiame pasaulyje {count} žaidėjas',

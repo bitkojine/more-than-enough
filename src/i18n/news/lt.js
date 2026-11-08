@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.205.0':
+    'Kas dabar žaidžia, matai mastelio juostos gale: žmogeliukas su žaliu tašku ir kiek žaidėjų nemiega, tu irgi. {phone:Paliesk|laptop:Spustelėk} jį ir pamatysi visus pasaulio žaidėjus. „+10“ ženkliukas ir vardų ženkliukai po viršutine juosta dingo; vardai vis dar matosi virš galvų ir ekrano krašte.',
   'news.0.204.0':
     'Dabar visi yra trimatė Mica: kiti žaidėjai, kompanijos robotai ir miegantieji piešiami taip pat kaip tu, nebe sena plokščia figūrėlė, ir kiekvienas vilki savo žaidėjo spalvos apsiaustą, kad juos atskirtum (tavo – irgi tavo spalvos). Miegantieji guli ant šono užsimerkę, o ženkliukuose ekrano krašte irgi Micos veidas. Kai iškeli kvietimo lentelę, Mica ją laiko savo trimatėmis rankomis, nebe senomis plokščiomis.',
   'news.0.203.0':

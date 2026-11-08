@@ -11,7 +11,6 @@ export function listenToPage(p, win = window, doc = document) {
   win.addEventListener('resize', p.resize);
   win.addEventListener('orientationchange', () => setTimeout(p.resize, 120));
   win.visualViewport?.addEventListener('resize', p.resize);
-  win.addEventListener('resize', together.refit);
   win.addEventListener('pagehide', () => {
     game.saveNow();
     sync()?.flush();

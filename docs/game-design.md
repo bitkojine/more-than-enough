@@ -857,7 +857,7 @@ Implemented in v0.180.0:
   where they happen to sit on screen.
 - Construction and building improvements share a Settlement menu. Equipment
   crafting and equipment upgrades belong under Equipment (confirmed by Watch).
-- When space runs out, collapse developer stats first, then friend names,
+- When space runs out, collapse developer stats first, then
   secondary status details, and expanded Messages. Essential actions remain
   accessible. Collapsing hides detail, not access to the underlying feature.
 - Secondary equipment actions may live behind one expandable Equipment

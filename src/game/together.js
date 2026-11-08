@@ -382,10 +382,9 @@ export function createTogether({
     el,
     friends,
     shared: () => !!game.state.shared,
-    at: () => game.state.player,
-    tell: (text) => hud.toast(text),
-    more: showPlayers
+    at: () => game.state.player
   });
+  el.people.addEventListener('click', () => showPlayers());
   const renderFriends = hudFriends.render;
 
   /* ---------------------------------------------------- joining a world */
@@ -563,8 +562,6 @@ export function createTogether({
     refresh() {
       renderFriends();
       sign.render();
-    },
-    // The screen changed size: as many chips as fit now.
-    refit: hudFriends.refit
+    }
   };
 }

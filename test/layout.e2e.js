@@ -142,7 +142,7 @@ function problems() {
   if (!sheetOpen && !dialog) {
     const targets = [
       ...document.querySelectorAll(
-        '#topbar button, #btnVersion, #friends .friend, #controls button, #controls .cap, #battery, #depth, #depthGauge, #placeCard, #log, #logPill, #equipmentTray button, #gearStatus, #sunTime, #perf'
+        '#topbar button, #btnVersion, #controls button, #controls .cap, #battery, #depth, #depthGauge, #placeCard, #log, #logPill, #equipmentTray button, #gearStatus, #sunTime, #perf'
       )
     ].filter(shown);
     const zoom = document.getElementById('zoomControls'),
@@ -150,7 +150,9 @@ function problems() {
     if (shown(zoom)) {
       const z = zoom.getBoundingClientRect(),
         r = resources.getBoundingClientRect();
-      const buttons = [...zoom.children].map((b) => b.getBoundingClientRect());
+      const buttons = [...zoom.children]
+        .filter((b) => !b.hidden)
+        .map((b) => b.getBoundingClientRect());
       if (z.top < r.bottom || z.left < r.left - 1 || z.right > r.right + 1)
         out.push('zoom is not beneath resources');
       if (buttons.some((b) => Math.abs(b.top - buttons[0].top) > 1))
@@ -390,6 +392,9 @@ async function enter(state) {
       you: id(1),
       owner: id(1),
       c: 0,
+      // New games are crystal games, and a crystal game joins only a crystal room.
+      eco: 'crystal',
+      fmt: (await import('/src/core/format.js')).WORLD_FORMAT,
       seed: 12345,
       mods: [],
       props: [],

@@ -1,58 +1,13 @@
-/* Who's in a shared world, on screen: a chip per friend under the top bar,
- * as many as fit across the screen with a "+N" for the rest, and the
- * Players screen (Settings) listing everyone. src/game/together.js keeps
- * who they are; this draws them, from elements and text only, never HTML. */
+/* Who's in a shared world, on screen: the person button at the end of the
+ * zoom bar counts who is playing now and opens the Players screen, which
+ * lists everyone. src/game/together.js keeps who they are; this draws them,
+ * from elements and text only, never HTML. */
 
 import { t, distance, number } from '../i18n/i18n.js';
 
-// DOM-scoped presentation state works in bundled and native-module hosts.
-const chipState = Symbol.for('mte.friend-chips');
-const MAX_CHIPS = 5; // friends shown by name under the top bar, when they fit
-
-/* ------------------------------------------------- chips under the top bar */
-
-// `list`: friends to show, in order ({id, name, st, color}); `tap(id)` on a
-// chip, `more()` on the "+N", which opens the Players screen.
-export function setChipCompact(box, compact) {
-  const state = box[chipState];
-  if (!state?.list) {
-    box[chipState] = { compact };
-    return;
-  }
-  if (state.compact === compact) return;
-  renderChips(box, state.list, { ...state.handlers, compact });
-}
-
-export function renderChips(box, list, { tap, more, compact = box[chipState]?.compact || false }) {
-  box[chipState] = { list, handlers: { tap, more }, compact };
-  const chips = list.slice(0, compact ? 0 : MAX_CHIPS).map((f) => {
-    const chip = button('', 'friend ' + f.st, () => tap(f.id));
-    chip.style.setProperty('--friend', f.color);
-    chip.setAttribute('aria-label', f.name + ', ' + t('together.state.' + f.st));
-    const name = document.createElement('span');
-    name.textContent = f.name;
-    chip.append(document.createElement('i'), name);
-    return chip;
-  });
-  const plus = button('', 'friend more', more); // i18n-ok: class names
-  let rest = list.length - chips.length;
-  const count = () => {
-    plus.textContent = '+' + rest;
-    plus.setAttribute('aria-label', t('together.more', { n: rest }));
-  };
-  box.replaceChildren(...chips);
-  if (rest > 0) {
-    count();
-    box.append(plus);
-  }
-  // On a narrow screen, fewer: the last chips fold into the "+N".
-  while (chips.length && box.scrollWidth > box.clientWidth + 1) {
-    chips.pop().remove();
-    rest++;
-    count();
-    if (!plus.isConnected) box.append(plus);
-  }
-}
+// Everyone awake counts (online, away or out of touch), you too; sleepers
+// show on the Players screen and lying in the world (Watch, 2026-11-08).
+export const awakeCount = (chips) => 1 + chips.filter((f) => f.st !== 'offline').length;
 
 /* ------------------------------------------------- the Players screen */
 
@@ -91,53 +46,29 @@ export function renderPlayers(box, rows) {
   );
 }
 
-function button(label, cls, onClick) {
-  const b = document.createElement('button');
-  b.type = 'button';
-  b.className = cls;
-  b.textContent = label;
-  b.addEventListener('click', onClick);
-  return b;
-}
-
 /* ------------------------------------------------ friends, kept on screen */
 
-// The chips and the Players screen kept in step with `friends` (friends.js).
-// `shared()`: whether you're in a shared world; `at()`: where you stand;
-// `tell(text)`: a line in the message log; `more()` opens the Players screen.
-export function createFriendsHud({ el, friends, shared, at, tell, more }) {
-  let shown = ''; // what the chips show, to redraw only on a change
+// The person button and the Players screen kept in step with `friends`
+// (friends.js). `shared()`: whether you're in a shared world; `at()`: where
+// you stand. The button itself opens Players (wired in together.js).
+export function createFriendsHud({ el, friends, shared, at }) {
+  let shown = ''; // what the button shows, to redraw only on a change
 
   // The Players screen: everyone in the world.
   const list = () => renderPlayers(el.playersPanel, friends.rows(at()));
 
-  // Tapping a friend under the top bar says how they're doing there.
-  function tapped(id) {
-    const f = friends.chips().find((c) => c.id === id);
-    if (f) tell(f.name + ': ' + t('together.state.' + f.st));
-  }
-
-  // A chip per friend under the top bar: those awake first, and past what
-  // fits a "+N" that opens the Players screen.
   function render() {
-    const chips = friends.chips();
-    const key = chips.map((f) => f.id + f.name + f.st).join('|') + (shared() ? 1 : 0);
     if (!el.playersPanel.hidden) list();
     el.playersCount.textContent = number(friends.size + 1);
+    const n = shared() ? awakeCount(friends.chips()) : 0;
+    const key = String(n);
     if (key === shown) return;
     shown = key;
-    el.friends.hidden = !shared();
-    if (!shared()) return el.friends.replaceChildren();
-    renderChips(el.friends, chips, { tap: tapped, more });
+    el.people.hidden = !n;
+    el.zoomControls.classList.toggle('social', n > 0);
+    el.peopleCount.textContent = number(n);
+    el.people.setAttribute('aria-label', t('players.title') + ': ' + t('players.awake', { n }));
   }
 
-  return {
-    render,
-    list,
-    // The screen changed size: as many chips as fit now.
-    refit() {
-      shown = '';
-      render();
-    }
-  };
+  return { render, list };
 }

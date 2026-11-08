@@ -93,8 +93,7 @@ export async function checkHudLayout({ evalJS, waitFor, ok, eq, cdp, session, sh
     document.getElementById('btnLantern').hidden=false;document.getElementById('btnFlare').hidden=false;document.getElementById('btnInvite').hidden=false;
     MTE_GAME.messages.setOpen(true);MTE_GAME.messages.add({text:'A message retained in the log'});
     document.getElementById('perf').hidden=false;const perfPill=Object.assign(document.createElement('button'),{className:'perfPill'});perfPill.append(Object.assign(document.createElement('span'),{className:'perfName',textContent:t('nerds.perf')+' · FPS'}),Object.assign(document.createElement('span'),{className:'perfValue',textContent:'30 / 30'}));document.getElementById('perf').replaceChildren(perfPill);
-    const {renderChips}=await import('/src/game/players.js');document.getElementById('friends').hidden=false;
-    renderChips(document.getElementById('friends'),Array.from({length:99},(_,i)=>({id:String(i),name:'Mica '+i,st:'online',color:'#a5d79c'})),{tap(){},more(){}});
+    const people=document.getElementById('btnPeople');people.hidden=false;people.parentElement.classList.add('social');document.getElementById('peopleCount').textContent='100';
   })()`);
   for (const [width, height] of [
     [320, 568],

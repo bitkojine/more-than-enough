@@ -104,6 +104,7 @@ export function findElements() {
     worldsPanel: byId('worldsPanel'),
     devicesBtn: byId('btnDevices'),
     devicesPanel: byId('devicesPanel'),
-    friends: byId('friends')
+    people: byId('btnPeople'),
+    peopleCount: byId('peopleCount')
   };
 }

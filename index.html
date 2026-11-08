@@ -185,6 +185,8 @@
         <button id="zoomLevel" type="button"><span id="zoomText">1×</span></button>
         <button id="btnZoomOut" type="button" data-i18n-aria-label="hud.zoomOut">&minus;</button>
         <button id="btnMap" type="button" data-i18n-aria-label="map.title"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z" /><path d="M9 4v14M15 6v14" /></svg></button>
+        <!-- Who's playing now, in a shared world: opens Players (Watch, 2026-11-08). -->
+        <button id="btnPeople" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="3.6" /><path d="M4.5 20.5c0-4.3 3.4-7.2 7.5-7.2s7.5 2.9 7.5 7.2" /></svg><i aria-hidden="true"></i><span id="peopleCount"></span></button>
       </div>
       <div id="settingsColumn">
         <button id="btnSettings" class="hudBtn" type="button" data-i18n-aria-label="settings.title"><svg class="gear" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg></button>
@@ -210,7 +212,6 @@
     <!-- Beside a solar panel, how long till the sun charges it or till it
          stops: independent world status; never replaces the version. -->
     <div id="sunTime" role="status" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 1v3m0 16v3M1 12h3m16 0h3M4 4l2 2m12 12 2 2M4 20l2-2M18 6l2-2"/></svg><span></span></div>
-    <div id="friends" role="group" data-i18n-aria-label="together.friends" hidden></div>
     <div id="perf" aria-live="off" hidden></div>
       </div>
     </div>

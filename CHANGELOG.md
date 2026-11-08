@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.205.0] - 2026-11-08
+
+Who's playing is now part of the zoom bar, as Watch asked on 2026-11-08
+("the bar that has the zoom controls should also have the player count
+info ... no more separate +10 count thing", and "it should have a person
+icon ... it's a social UI thing"). Before, a separate "+N" pill floated
+under the top bar on the right: on phones it was all you saw (every chip
+folded into it), it counted everyone else in the world including sleepers
+but not you, and nothing about "+10" said it was about people.
+
+- **A person button at the end of the zoom bar** (`#btnPeople`): a person
+  with a green dot and how many players are awake now (online, away or out
+  of touch), you included; sleepers aren't counted (Watch chose this over
+  everyone or "awake/everyone"). Tapping it opens Players. It shows only in
+  a shared world, and the bar grows from 176 to 228 px for it, which fits
+  from 320 px up.
+- **Friend chips are gone on every screen** (Watch chose): names already
+  show over heads and on edge badges, and Players lists everyone. With
+  them goes the "friend names" step of the HUD's collapse order
+  (`hudSpacePlan`: performance, status, messages), so `data-hud-level`
+  numbers drop by one.
+- **Layout check**: the `crowd` state had not joined its fake room since
+  new games became crystal games (its welcome lacked `eco` and `fmt`), so it
+  checked an empty HUD; it joins again, and hidden zoom-bar buttons no longer
+  count as out of line.
+
 ## [0.204.0] - 2026-11-08
 
 Every player is 3D Mica, as Watch asked on 2026-11-08 ("totally remove all

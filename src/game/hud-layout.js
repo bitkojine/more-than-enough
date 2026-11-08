@@ -1,9 +1,8 @@
 /* Shared space policy for semantic HUD groups. Only presentation changes:
  * core actions, world rules, and the player's disclosure choices stay intact. */
-import { setChipCompact } from './players.js';
 import { createHudPanels } from './hud-panels.js';
 
-export const HUD_COLLAPSE_ORDER = ['performance', 'friends', 'status', 'messages'];
+export const HUD_COLLAPSE_ORDER = ['performance', 'status', 'messages'];
 const wideHud = (width, height) => width >= 1024 && height > 500;
 
 // Region bounds depend only on the viewport and permanent HUD, never on an
@@ -28,22 +27,20 @@ export function clearOfActions(regions, log, actions, height = innerHeight) {
 }
 
 // O(1), independent of world size. Groups yield detail in one fixed order.
-export function hudSpacePlan({ room, status = 0, performance = 0, friends = 0, messages = 0 }) {
-  const fits = () => Math.max(status, 24 + performance + friends) + messages + 12 <= room;
+export function hudSpacePlan({ room, status = 0, performance = 0, messages = 0 }) {
+  const fits = () => Math.max(status, 24 + performance) + messages + 12 <= room;
   let level = 0;
   while (!fits() && level < HUD_COLLAPSE_ORDER.length) {
     level++;
     if (level === 1) performance = performance ? 24 : 0;
-    if (level === 2) friends = 0; // the compact count shares the metadata row
-    if (level === 3) status = status ? 44 : 0;
-    if (level === 4) messages = messages ? 44 : 0;
+    if (level === 2) status = status ? 44 : 0;
+    if (level === 3) messages = messages ? 44 : 0;
   }
   return {
     level,
     performance: level >= 1,
-    friends: level >= 2,
-    status: level >= 3,
-    messages: level >= 4
+    status: level >= 2,
+    messages: level >= 3
   };
 }
 
@@ -95,8 +92,7 @@ export function createHudLayout({ el, messages, openCrafting, beforeOpen = () =>
         el.perfect,
         el.lantern,
         el.flare,
-        tray,
-        document.getElementById('friends')
+        tray
       ].map((n) => n.hidden),
       el.depthGauge.children.length,
       el.battery.querySelector('span').textContent
@@ -126,19 +122,16 @@ export function createHudLayout({ el, messages, openCrafting, beforeOpen = () =>
       room: innerHeight - messageBottom - topEnd - 8,
       status,
       performance: visible(el.perf) ? 44 : 0,
-      friends: visible(document.getElementById('friends')) ? 34 : 0,
       messages: Math.max(52 + regions.previewHeight, messages.open ? 180 : 0)
     });
     if (body.classList.contains('placing') || !regions.wide) {
-      plan.level = Math.max(3, plan.level);
+      plan.level = Math.max(2, plan.level);
       plan.performance = true;
       plan.status = true;
-      plan.friends = true;
     }
     if (plan.level !== lastLevel) {
       lastLevel = plan.level;
       body.dataset.hudLevel = String(plan.level);
-      setChipCompact(document.getElementById('friends'), plan.friends);
     }
     panels.apply(plan.messages);
     const safeTop = Math.max(topEnd, secondary.getBoundingClientRect().bottom) + 10;
